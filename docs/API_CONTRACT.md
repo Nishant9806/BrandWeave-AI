@@ -103,21 +103,29 @@ Runs deterministic and AI-based analysis.
 Response:
 
 {
-  "submission_id": "123",
-  "version": 1,
-  "overall_status": "REVIEW_COMPLETED",
+  "submission_id": "submission_001",
+  "version_id": "version_001",
+  "review_id": "review_001",
+  "status": "COMPLETED",
+  "total_findings": 2,
   "findings": []
 }
-
+Every review run creates a new record in the reviews table.
+Each review belongs to one specific content version.
+Findings generated during a review must reference that review.
+Previous review results must remain available.
+A failed review must be recorded with status FAILED.
 ### GET /api/content/{id}/findings
 
-Returns findings associated with the submission's latest reviewed version.
+Returns findings from the latest completed review of the submission's latest reviewed version.
 
 ## 6. Common Finding Schema
 
 Every finding must follow this structure:
 
 {
+  "finding_id": "finding_001",
+  "review_id": "review_001",
   "category": "FACTUAL_ERROR",
   "severity": "HIGH",
   "confidence": 0.98,
@@ -128,6 +136,8 @@ Every finding must follow this structure:
   "source_id": "fact_001",
   "status": "OPEN"
 }
+
+The backend must validate that each source reference points to an existing record of the specified source type. If no valid evidence reference exists, the finding must not be presented as an evidence-confirmed conflict.
 
 Allowed categories:
 - FACTUAL_ERROR
@@ -143,11 +153,11 @@ Allowed severity:
 - CRITICAL
 
 Allowed status:
-- OPEN
-- ACCEPTED
-- REJECTED
-- RESOLVED
-- DISPUTED
+- OPEN 	Finding has not been addressed.
+- ACCEPTED Creator accepts the suggested correction.
+- REJECTED 	Creator rejects the suggested correction.
+- RESOLVED 	A subsequent review confirms the issue is fixed.
+- DISPUTED Creator disputes the finding.
 
 Confidence must be between 0 and 1.
 
@@ -173,6 +183,21 @@ Request:
   ]
 }
 
+Response:
+
+{
+  "submission_id": "submission_001",
+  "new_version_id": "version_002",
+  "version_number": 2,
+  "status": "DRAFT",
+  "message": "Corrections applied successfully. A new review is required."
+}
+
+Corrections must reference findings from the specified content version's review.
+Applying corrections creates a new content version.
+The original content version must never be overwritten.
+Applying a correction does not automatically mark the original finding as resolved.
+A new review must be performed to determine whether the issue has been resolved.
 The original version must remain unchanged.
 
 ## 8. Approval API
@@ -186,7 +211,13 @@ Request:
   "decision": "APPROVED",
   "comment": "Content reviewed and approved."
 }
-
+Response:
+{
+  "submission_id": "submission_001",
+  "version_id": "version_002",
+  "decision": "APPROVED",
+  "message": "Content approved successfully."
+}
 Allowed decisions:
 - APPROVED
 - REJECTED
