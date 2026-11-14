@@ -238,3 +238,40 @@ Prohibited claims:
 This document defines the proposed database design.
 
 The schema must be reviewed and approved before implementation.
+# 7. Review Management
+
+## 7.1 reviews
+
+Stores individual analysis attempts performed on a content version.
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | Primary Key |
+| version_id | UUID | Foreign Key |
+| status | VARCHAR(30) | NOT NULL |
+| total_findings | INTEGER | DEFAULT 0 |
+| created_at | TIMESTAMP | NOT NULL |
+| completed_at | TIMESTAMP | NULL |
+
+Possible statuses:
+- PENDING
+- COMPLETED
+- FAILED
+
+## 7.2 Updated findings relationship
+
+The findings table must reference review_id instead of directly referencing only version_id.
+
+Every finding belongs to a specific review.
+
+A content version can have multiple review attempts.
+
+## 7.3 Review Rules
+
+1. Every review belongs to one content version.
+2. Every finding belongs to one review.
+3. A new analysis creates a new review record.
+4. Previous review results must be preserved.
+5. Accepting a correction does not automatically resolve a finding.
+6. After corrections, the system creates a new content version and performs a fresh review.
+7. The latest completed review is used for the current compliance report.
