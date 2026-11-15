@@ -23,7 +23,9 @@ def check_facts(content: str) -> list[dict]:
     # 1. BATTERY LIFE CHECK
     # --------------------------------------------------
 
-    battery_pattern = r"(\d+)\s*[- ]?\s*hour(?:s)?(?:\s+of)?\s+battery\s+life"
+    battery_pattern = (
+        r"(\d+)\s*[- ]?\s*hour(?:s)?(?:\s+of)?\s+battery\s+life"
+    )
 
     battery_matches = re.finditer(
         battery_pattern,
@@ -32,6 +34,14 @@ def check_facts(content: str) -> list[dict]:
     )
 
     approved_battery = APPROVED_FACTS["battery_life"]["value"]
+
+    approved_battery = re.sub(
+        r"(\d+)\s*hours?",
+        r"\1 hours",
+        approved_battery,
+        flags=re.IGNORECASE
+    )
+
     approved_battery_hours = int(
         re.search(r"\d+", approved_battery).group()
     )
@@ -49,10 +59,12 @@ def check_facts(content: str) -> list[dict]:
                 "original_text": match.group(0),
                 "explanation": (
                     f"The approved battery life is "
-                    f"{approved_battery}, but the submitted content "
+                    f"{approved_battery_hours} hours, but the submitted content "
                     f"claims {claimed_hours} hours."
                 ),
-                "suggested_fix": f"{approved_battery_hours}-hour battery life",
+                "suggested_fix": (
+                    f"{approved_battery_hours}-hour battery life"
+                ),
                 "source_type": "BRAND_FACT",
                 "source_id": "battery_life",
                 "status": "OPEN"
@@ -64,7 +76,9 @@ def check_facts(content: str) -> list[dict]:
 
     approved_price = APPROVED_FACTS["price"]["value"]
 
-    price_pattern = r"(?<![A-Za-z0-9])(?:₹|Rs\.?\s*|INR\s*)([\d,]+)(?!\w)"
+    price_pattern = (
+        r"(?<![A-Za-z0-9])(?:₹\s*|Rs\.?\s*|INR\s*)([\d,]+)(?!\w)"
+    )
 
     price_matches = re.finditer(
         price_pattern,
