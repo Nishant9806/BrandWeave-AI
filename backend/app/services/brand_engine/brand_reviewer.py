@@ -1,3 +1,4 @@
+
 """
 Brand Reviewer
 
@@ -7,6 +8,7 @@ and combines their findings.
 
 from .fact_checker import check_facts
 from .terminology_checker import check_terminology
+from .claim_checker import check_claims
 
 
 def review_brand_content(content: str) -> dict:
@@ -22,12 +24,15 @@ def review_brand_content(content: str) -> dict:
             "message": "Content cannot be empty."
         }
 
-    # Run individual checkers
     factual_findings = check_facts(content)
     terminology_findings = check_terminology(content)
+    claim_findings = check_claims(content)
 
-    # Combine findings
-    all_findings = factual_findings + terminology_findings
+    all_findings = (
+        factual_findings
+        + terminology_findings
+        + claim_findings
+    )
 
     return {
         "status": "COMPLETED",

@@ -30,7 +30,7 @@ APPROVED_FACTS = {
     },
 
     "price": {
-        "value": "₹1,499",
+        "value": "INR 1,499",
         "description": "Approved selling price of SmartWatch Pro."
     }
 }

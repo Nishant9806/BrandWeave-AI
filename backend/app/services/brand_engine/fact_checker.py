@@ -64,7 +64,7 @@ def check_facts(content: str) -> list[dict]:
 
     approved_price = APPROVED_FACTS["price"]["value"]
 
-    price_pattern = r"(?<![A-Za-z0-9])(?:₹|Rs\.?\s*|INR\s*)([\d,]+)(?!\w)"
+    price_pattern = r"(?<![A-Za-z0-9])(?:\u20b9\s*|Rs\.?\s*|INR\s*)([\d,]+)(?!\w)"
 
     price_matches = re.finditer(
         price_pattern,
