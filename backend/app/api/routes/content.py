@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import Organization, User, Submission, ContentVersion
+from app.services.audit_logger import record_audit_event
 from app.schemas.content import ContentCreate, ContentResponse
 from app.db.models import Review
 
@@ -47,6 +48,11 @@ def create_content(payload: ContentCreate, db: Session = Depends(get_db)):
         )
 
         db.add(version)
+        record_audit_event(
+            db, organization.id, "CONTENT_CREATED",
+            user.id, submission.id,
+            {"title": submission.title, "version": 1}
+        )
         db.commit()
         db.refresh(submission)
         db.refresh(version)
@@ -104,6 +110,11 @@ def create_correction(
         submission.current_status = "RESUBMITTED"
 
         db.add(new_version)
+        record_audit_event(
+            db, submission.organization_id, "CONTENT_CORRECTED",
+            new_version.created_by, submission.id,
+            {"version": new_version.version_number}
+        )
         db.commit()
         db.refresh(new_version)
 

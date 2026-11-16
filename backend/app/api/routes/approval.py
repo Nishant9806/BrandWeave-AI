@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.services.audit_logger import record_audit_event
 from app.db.models import (
     Submission,
     ContentVersion,
@@ -114,6 +115,11 @@ def decide_submission(
         submission.current_status = payload.decision
 
         db.add(approval)
+        record_audit_event(
+            db, submission.organization_id, "APPROVAL_DECIDED",
+            manager.id, submission.id,
+            {"decision": approval.decision, "comment": approval.comment}
+        )
         db.commit()
         db.refresh(approval)
 

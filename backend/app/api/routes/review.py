@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.services.audit_logger import record_audit_event
 from app.db.models import (
     Submission,
     ContentVersion,
@@ -102,6 +103,11 @@ def review_submission(
             db.add(finding)
             saved_findings.append(finding)
 
+        record_audit_event(
+            db, submission.organization_id, "CONTENT_REVIEWED",
+            submission.created_by, submission.id,
+            {"review_id": str(review.id), "total_findings": review.total_findings}
+        )
         db.commit()
 
         return ReviewResponse(
